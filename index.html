@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Operativo Linux | Arquitectura, Administración y Soluciones</title>
+    <style>
+        /* Variables y Reseteo */
+        :root {
+            --bg-dark: #0a0f18;
+            --bg-card: #131c2e;
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --secondary: #38bdf8;
+            --accent: #ef4444;
+            --success: #22c55e;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* =========================================
+           MENÚ DINÁMICO DE OPCIONES (CSS PURO)
+           ========================================= */
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 15, 24, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .navbar {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            text-decoration: none;
+            letter-spacing: 1px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .logo span {
+            color: var(--text-main);
+        }
+
+        #menu-toggle {
+            display: none;
+        }
+
+        .menu-icon {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-links li {
+            position: relative;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 500;
+            padding: 0.5rem 0;
+            display: block;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links > li > a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links > li > a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links > li > a:hover::after {
+            width: 100%;
+        }
+
+        /* Submenú desplegable dinámico */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 230px;
+            list-style: none;
+            padding: 0.5rem 0;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(15px);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+        }
+
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu li a {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-menu li a:hover {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: var(--primary);
+            padding-left: 1.5rem;
+        }
+
+        /* =========================================
+           SECCIÓN PRINCIPAL (HERO)
+           ========================================= */
+        .hero {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: radial-gradient(circle at top, #132a3a 0%, var(--bg-dark) 75%);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 3.1rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #10b981, #38bdf8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            max-width: 750px;
+            margin: 0 auto 2rem;
+            color: var(--text-muted);
+            font-size: 1.15rem;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--primary);
+            color: var(--bg-dark);
+            font-weight: 700;
+            padding: 0.85rem 2.2rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* Contenedor General */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+        }
+
+        /* =========================================
+           INFORMACIÓN BÁSICA
+           ========================================= */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .info-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .info-card h3 {
+            color: var(--primary);
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .info-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        code {
+            background-color: rgba(15, 23, 42, 0.8);
+            color: var(--secondary);
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        /* =========================================
+           PROBLEMAS Y SOLUCIONES
+           ========================================= */
+        .ps-section {
+            background-color: rgba(19, 28, 46, 0.45);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+        }
+
+        .ps-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .problem-box {
+            padding: 1.5rem 2rem;
+            border-left: 4px solid var(--accent);
+            background-color: rgba(239, 68, 68, 0.06);
+        }
+
+        .solution-box {
+            padding: 1.5rem 2rem;
+            border-left: 4px solid var(--success);
+            background-color: rgba(34, 197, 94, 0.06);
+            flex-grow: 1;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-problem {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .badge-solution {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
+
+        .ps-card h4 {
+            font-size: 1.15rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .ps-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* =========================================
+           FOOTER DE CONTACTO
+           ========================================= */
+        footer {
+            background-color: #06090f;
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-col h3 {
+            color: var(--text-main);
+            margin-bottom: 1.2rem;
+            font-size: 1.2rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-col h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .footer-col p, .footer-col li {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 0.8rem;
+            list-style: none;
+        }
+
+        .footer-col a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-col a:hover {
+            color: var(--primary);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* =========================================
+           DISEÑO RESPONSIVE (MÓVILES)
+           ========================================= */
+        @media (max-width: 768px) {
+            .menu-icon {
+                display: block;
+            }
+
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: var(--bg-card);
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0 2rem;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease, padding 0.4s ease;
+                border-bottom: 1px solid var(--border);
+                gap: 0;
+            }
+
+            #menu-toggle:checked ~ .nav-links {
+                max-height: 500px;
+                padding: 1rem 2rem;
+            }
+
+            .nav-links li {
+                width: 100%;
+                padding: 0.5rem 0;
+            }
+
+            .dropdown-menu {
+                position: static;
+                opacity: 1;
+                visibility: visible;
+                transform: none;
+                box-shadow: none;
+                border: none;
+                background-color: rgba(10, 15, 24, 0.5);
+                margin-top: 0.5rem;
+                padding-left: 1rem;
+            }
+
+            .ps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ENCABEZADO Y MENÚ DINÁMICO -->
+    <header>
+        <nav class="navbar">
+            <a href="#inicio" class="logo">~/GNU<span>LINUX</span></a>
+            
+            <input type="checkbox" id="menu-toggle">
+            <label for="menu-toggle" class="menu-icon">&#9776;</label>
+
+            <ul class="nav-links">
+                <li><a href="#inicio">Inicio</a></li>
+                <li class="dropdown">
+                    <a href="#informacion">Información Básica &#9662;</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#arquitectura">Kernel y Arquitectura</a></li>
+                        <li><a href="#distribuciones">Distribuciones (Distros)</a></li>
+                        <li><a href="#jerarquia">Sistema de Archivos</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#problemas-soluciones">Problemas y Soluciones &#9662;</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#caso-1">Permisos Denegados</a></li>
+                        <li><a href="#caso-2">Repositorios Rotos</a></li>
+                        <li><a href="#caso-3">Puertos y Servicios</a></li>
+                    </ul>
+                </li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- PORTADA PRINCIPAL -->
+    <section id="inicio" class="hero">
+        <h1>Sistema Operativo GNU/Linux</h1>
+        <p>Guía fundamental sobre el núcleo de código abierto que impulsa servidores empresariales, infraestructuras en la nube, supercomputadoras y entornos de desarrollo modernos.</p>
+        <a href="#informacion" class="btn">Explorar Documentación</a>
+    </section>
+
+    <!-- SECCIÓN: INFORMACIÓN BÁSICA -->
+    <section id="informacion" class="container">
+        <h2 class="section-title">Información Básica</h2>
+        <p class="section-subtitle">Conceptos esenciales de arquitectura, software libre y administración del sistema.</p>
+
+        <div class="info-grid">
+            <article id="arquitectura" class="info-card">
+                <h3>01. Kernel Linux y Filosofía Libre</h3>
+                <p>Creado por Linus Torvalds en 1991, Linux es el núcleo (kernel) encargado de gestionar el hardware, la memoria RAM, los procesos y los dispositivos. Combinado con las herramientas del proyecto GNU, conforma un sistema operativo estable, seguro y bajo licencia GPL que permite estudiar, modificar y redistribuir su código fuente.</p>
+            </article>
+
+            <article id="distribuciones" class="info-card">
+                <h3>02. Distribuciones Principales</h3>
+                <p>El ecosistema se organiza en distribuciones adaptadas a distintos propósitos. Destacan familias como <strong>Debian y Ubuntu</strong> (ideales para servidores web, DNS y uso general mediante paquetes <code>.deb</code>), <strong>Red Hat / Fedora</strong> (entornos corporativos <code>.rpm</code>) y <strong>Arch Linux</strong> (personalización avanzada).</p>
+            </article>
+
+            <article id="jerarquia" class="info-card">
+                <h3>03. Jerarquía de Directorios (FHS)</h3>
+                <p>A diferencia de otros sistemas, Linux organiza todo bajo un único árbol que parte de la raíz <code>/</code>. Directorios críticos incluyen <code>/etc</code> para archivos de configuración del sistema, <code>/var/www</code> para servidores web, <code>/home</code> para datos de usuarios y <code>/var/log</code> para registros de auditoría.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: PROBLEMAS Y SOLUCIONES -->
+    <section id="problemas-soluciones" class="ps-section">
+        <div class="container">
+            <h2 class="section-title">Problemas y Soluciones</h2>
+            <p class="section-subtitle">Resolución de incidencias frecuentes en la administración de sistemas y servidores Linux.</p>
+
+            <div class="ps-grid">
+                <!-- Par 1 -->
+                <div id="caso-1" class="ps-card">
+                    <div class="problem-box">
+                        <span class="badge badge-problem">Problema #1: Seguridad y Accesos</span>
+                        <h4>Error "Permission Denied" en archivos o scripts</h4>
+                        <p>Al intentar ejecutar un script en Bash o subir archivos mediante FTP/SFTP a un directorio del servidor web, el sistema bloquea la acción debido a restricciones estrictas de propietario o falta de permisos de ejecución.</p>
+                    </div>
+                    <div class="solution-box">
+                        <span class="badge badge-solution">Solución Técnica</span>
+                        <h4>Ajuste de permisos y propietarios</h4>
+                        <p>Utiliza <code>chmod +x archivo.sh</code> para otorgar permisos de ejecución, o asigna los privilegios estándar (<code>755</code> para carpetas y <code>644</code> para archivos). Si el propietario es incorrecto, reasígnalo con <code>sudo chown -R usuario:grupo /ruta</code>.</p>
+                    </div>
+                </div>
+
+                <!-- Par 2 -->
+                <div id="caso-2" class="ps-card">
+                    <div class="problem-box">
+                        <span class="badge badge-problem">Problema #2: Gestión de Paquetes</span>
+                        <h4>Repositorios obsoletos o dependencias rotas</h4>
+                        <p>Al ejecutar <code>apt update</code> o instalar servicios como Apache o BIND9, el gestor devuelve errores 404, fallos de firma GPG o paquetes bloqueados que impiden actualizar el sistema operativo.</p>
+                    </div>
+                    <div class="solution-box">
+                        <span class="badge badge-solution">Solución Técnica</span>
+                        <h4>Reconstrucción de índices y reparación</h4>
+                        <p>Verifica las URLs de los espejos oficiales dentro de <code>/etc/apt/sources.list</code>, limpia la caché local con <code>sudo apt clean</code> y fuerza la reparación de dependencias rotas ejecutando <code>sudo apt --fix-broken install</code> seguido de una actualización limpia.</p>
+                    </div>
+                </div>
+
+                <!-- Par 3 -->
+                <div id="caso-3" class="ps-card">
+                    <div class="problem-box">
+                        <span class="badge badge-problem">Problema #3: Redes y Demonios</span>
+                        <h4>Servicio activo localmente pero inaccesible en red</h4>
+                        <p>Un servidor web, FTP o DNS funciona dentro de la máquina local, pero los clientes externos no logran conectarse debido a bloqueos del cortafuegos o interfaces configuradas únicamente en loopback.</p>
+                    </div>
+                    <div class="solution-box">
+                        <span class="badge badge-solution">Solución Técnica</span>
+                        <h4>Diagnóstico de puertos y reglas de Firewall</h4>
+                        <p>Comprueba en qué interfaz escucha el servicio con <code>ss -tulnp</code> para asegurar que esté vinculado a la IP de red (<code>0.0.0.0</code>) y habilita el tráfico entrante en el cortafuegos mediante <code>sudo ufw allow puerto/tcp</code>.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER DE CONTACTO -->
+    <footer id="contacto">
+        <div class="footer-content">
+            <div class="footer-col">
+                <h3>Sobre el Proyecto</h3>
+                <p>Portal técnico dedicado a la difusión del conocimiento sobre administración de sistemas GNU/Linux, redes y software de código abierto.</p>
+            </div>
+
+            <div class="footer-col">
+                <h3>Navegación Rápida</h3>
+                <ul>
+                    <li><a href="#inicio">Inicio</a></li>
+                    <li><a href="#informacion">Información Básica</a></li>
+                    <li><a href="#problemas-soluciones">Problemas y Soluciones</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h3>Información de Contacto</h3>
+                <ul>
+                    <li><strong>Autor:</strong> Tu Nombre Completo</li>
+                    <li><strong>Correo:</strong> <a href="mailto:tu.correo@ejemplo.com">tu.correo@ejemplo.com</a></li>
+                    <li><strong>Teléfono:</strong> +503 0000-0000</li>
+                    <li><strong>Ubicación:</strong> San Miguel, El Salvador</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2026 Todos los derechos reservados. Estructurado en HTML5 y CSS3 puro en un solo archivo.</p>
+        </div>
+    </footer>
+
+</body>
+</html>
